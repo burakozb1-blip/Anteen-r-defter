@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#16202E">
+<title>90 Gün Antrenör Defteri</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: kompakt özet şeridi → ay sekmeleri (plaka renkleri) → gün listesi; satıra dokununca yandan açılan çalışma kartı */
+:root{
+  --bg:#F3F5F8; --surface:#FFFFFF; --sunk:#E8ECF2; --ink:#16202E; --muted:#5C6878; --line:#D5DBE4;
+  --m1:#1F5FBF; --m2:#C99A06; --m3:#C42B2B; --accent:#1F5FBF;
+  --ok:#1E8A4C; --warn:#B86E00; --info:#5B4FC4;
+  --f-display:"Barlow Condensed","Arial Narrow",sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F141B; --surface:#171E28; --sunk:#1F2834; --ink:#E6EBF2; --muted:#93A0B2; --line:#2A3544;
+  --m1:#5C93E8; --m2:#E3B93A; --m3:#E8615E; --accent:#5C93E8;
+  --ok:#4CC27F; --warn:#E6A23C; --info:#9C92F0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F141B; --surface:#171E28; --sunk:#1F2834; --ink:#E6EBF2; --muted:#93A0B2; --line:#2A3544;
+  --m1:#5C93E8; --m2:#E3B93A; --m3:#E8615E; --accent:#5C93E8;
+  --ok:#4CC27F; --warn:#E6A23C; --info:#9C92F0; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:16px;padding-block:20px 60px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:.01em}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+header.top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:end;justify-content:space-between;margin-bottom:16px}
+header.top h1{font-size:clamp(28px,6vw,40px);font-weight:800;text-transform:uppercase;line-height:1}
+header.top p{margin:4px 0 0;color:var(--muted);font-size:14px}
+.start{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+.start input{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 8px;color:var(--ink)}
+.save{font-size:12px;color:var(--muted);min-height:18px}
+
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:18px}
+.stat{background:var(--surface);padding:12px 14px;min-width:0}
+.stat b{display:block;font-family:var(--f-display);font-size:28px;font-weight:700;line-height:1.1}
+.stat span{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.bar{height:6px;background:var(--sunk);border-radius:3px;margin-top:6px;overflow:hidden;display:flex}
+.bar i{display:block;height:100%}
+@media (max-width:640px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.today{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:18px}
+.today .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.today .t{font-weight:600;min-width:0}
+.today button{margin-left:auto;background:var(--ink);color:var(--bg);border:0;border-radius:6px;padding:7px 12px;font-weight:600;font-size:13px}
+
+.views{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:12px;overflow-x:auto}
+.views button{background:none;border:0;padding:8px 12px;font-family:var(--f-display);font-size:18px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap}
+.views button[aria-selected="true"]{color:var(--ink);border-color:var(--ink)}
+
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 11px;font-size:13px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:0}
+.search{flex:1 1 200px;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 14px}
+
+.month{margin-top:18px}
+.mhead{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.plate{width:14px;height:14px;border-radius:50%;border:3px solid currentColor;flex:none}
+.mhead h2{font-size:20px;font-weight:700;text-transform:uppercase}
+.mhead small{color:var(--muted);font-size:12px;margin-left:auto}
+.list{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.row{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 12px;border-top:1px solid var(--line);width:100%;text-align:left;background:none;border-left:0;border-right:0;border-bottom:0}
+.row:first-child{border-top:0}
+.row:hover{background:var(--sunk)}
+.row .n{font-family:var(--f-display);font-size:22px;font-weight:700;color:var(--muted);text-align:center}
+.row.is-today .n{color:var(--bg);background:var(--ink);border-radius:6px}
+.row .title{font-weight:500;min-width:0}
+.row .meta{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:12px;color:var(--muted);margin-top:2px}
+.row.milestone .title{font-weight:600}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap;border:1px solid currentColor}
+.st-todo{color:var(--muted)} .st-doing{color:var(--warn)} .st-done{color:var(--ok)} .st-review{color:var(--info)}
+.due{color:var(--info);font-weight:600}
+.conf{display:inline-flex;gap:2px}
+.conf i{width:6px;height:10px;border-radius:1px;background:var(--line)}
+.conf i.on{background:var(--ink)}
+.empty{padding:24px;text-align:center;color:var(--muted)}
+
+.log{display:flex;flex-direction:column;gap:14px}
+.logday h3{font-size:16px;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.entry{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:start;padding:10px 12px;border-top:1px solid var(--line);background:none;border-left:0;border-right:0;border-bottom:0;width:100%;text-align:left}
+.entry:first-child{border-top:0}
+.entry:hover{background:var(--sunk)}
+.tag{font-size:11px;text-transform:uppercase;letter-spacing:.06em;padding:2px 7px;border-radius:4px;background:var(--sunk);white-space:nowrap}
+.entry p{margin:2px 0 0;color:var(--muted);font-size:13px;overflow-wrap:anywhere}
+
+/* çalışma kartı */
+.scrim{position:fixed;inset:0;background:rgba(10,15,22,.45);z-index:10}
+.sheet{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);background:var(--bg);z-index:11;overflow-y:auto;box-shadow:-8px 0 30px rgba(0,0,0,.2);
+  padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 40px)}
+.sheet .hd{display:flex;gap:12px;align-items:start;margin-bottom:14px}
+.sheet .num{font-family:var(--f-display);font-size:44px;font-weight:800;line-height:.9;padding:6px 10px;border-radius:8px;color:#fff;flex:none}
+.sheet .hd h2{font-size:26px;font-weight:700;line-height:1.1}
+.sheet .hd .sub{color:var(--muted);font-size:13px;margin-top:4px}
+.x{margin-left:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px;width:36px;height:36px;font-size:18px;flex:none}
+.nav{display:flex;gap:8px;margin-bottom:14px}
+.nav button{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px;font-size:13px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.card h3{font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.seg button{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:7px 4px;font-size:13px}
+.seg button[aria-pressed="true"]{border-color:currentColor;background:var(--sunk);font-weight:600}
+.scale{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.scale button{width:38px;height:34px;border:1px solid var(--line);background:var(--bg);border-radius:6px;font-family:var(--f-mono)}
+.scale button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.scale small{color:var(--muted);font-size:12px}
+label.f{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:10px 0 4px}
+textarea,.in{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;resize:vertical}
+textarea{min-height:80px;line-height:1.5}
+.form{display:grid;grid-template-columns:1fr 90px 1fr;gap:6px}
+.form .in{min-width:0}
+.form .full{grid-column:1/-1}
+@media (max-width:440px){.form{grid-template-columns:1fr 1fr}.form .wide{grid-column:1/-1}}
+.btn{background:var(--ink);color:var(--bg);border:0;border-radius:6px;padding:8px 14px;font-weight:600}
+.btn.ghost{background:none;color:var(--ink);border:1px solid var(--line)}
+.sess{list-style:none;margin:10px 0 0;padding:0}
+.sess li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:start;padding:8px 0;border-top:1px solid var(--line);font-size:14px}
+.sess li p{margin:0;color:var(--muted);font-size:13px;overflow-wrap:anywhere}
+.del{background:none;border:0;color:var(--muted);font-size:13px;padding:2px 4px}
+.rev{display:flex;flex-direction:column;gap:6px}
+.rev label{display:flex;gap:8px;align-items:center;font-size:14px}
+.rev .when{margin-left:auto;font-size:12px;color:var(--muted)}
+.hint{font-size:13px;color:var(--muted);margin:0}
+.data{display:flex;flex-wrap:wrap;gap:8px;margin-top:28px;align-items:center;font-size:13px;color:var(--muted)}
+#ioBox{margin-top:8px}
+.auth{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end;font-size:13px;color:var(--muted);margin-top:8px}
+.auth .btn{padding:6px 12px;font-size:13px}
+.notice{background:var(--surface);border:1px solid var(--warn);border-radius:10px;padding:12px 14px;margin-bottom:18px;font-size:14px}
+.notice b{color:var(--warn)}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:slide .18s ease-out}@keyframes slide{from{transform:translateX(24px);opacity:.6}}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>90 Gün Antrenör Defteri</h1>
+      <p>Temel bilim → programlama → danışan uygulaması. Her konunun ne zaman, ne kadar ve hangi notlarla çalışıldığı burada.</p>
+    </div>
+    <div>
+      <label class="start" for="startDate">Başlangıç (1. gün)
+        <input type="date" id="startDate">
+      </label>
+      <div class="save" id="saveState" aria-live="polite"></div>
+      <div class="auth" id="auth"></div>
+    </div>
+  </header>
+
+  <div class="notice" id="notice" hidden></div>
+
+  <section class="stats" id="stats"></section>
+  <section class="today" id="today"></section>
+
+  <nav class="views" role="tablist">
+    <button role="tab" id="tabPlan" aria-selected="true" data-view="plan">Plan</button>
+    <button role="tab" id="tabLog" aria-selected="false" data-view="log">Çalışma günlüğü</button>
+  </nav>
+
+  <div id="planView">
+    <div class="tools">
+      <div class="chips" id="monthChips"></div>
+      <div class="chips" id="statusChips"></div>
+      <input class="search" id="q" type="search" placeholder="Konu veya notlarda ara…" aria-label="Ara">
+    </div>
+    <div id="months"></div>
+  </div>
+  <div id="logView" hidden>
+    <div class="log" id="log"></div>
+  </div>
+
+  <div class="data">
+    <span>Yedek:</span>
+    <button class="btn ghost" id="exportBtn">Tüm veriyi kopyala</button>
+    <button class="btn ghost" id="importBtn">Yedekten geri yükle</button>
+  </div>
+  <div id="ioBox" hidden>
+    <textarea id="ioText" aria-label="Yedek verisi" placeholder="Kopyaladığın yedeği buraya yapıştır"></textarea>
+    <div style="display:flex;gap:8px;margin-top:6px"><button class="btn" id="ioApply">Geri yükle</button><button class="btn ghost" id="ioClose">Kapat</button><span class="hint" id="ioMsg"></span></div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="sheet" id="sheet" hidden aria-modal="true" role="dialog" aria-labelledby="sTitle"></aside>
+
+<script type="module">
+/* ================= FIREBASE AYARI =================
+   Firebase Console → Proje ayarları → Genel → "Uygulamalarınız" → Web uygulaması
+   oradaki firebaseConfig nesnesini aşağıya yapıştır. */
+const firebaseConfig = {
+  apiKey: "AIzaSyDAGeWVXJBeY054ynHmxdwuWj2j51qKLO4",
+  authDomain: "antrenor-defter.firebaseapp.com",
+  projectId: "antrenor-defter",
+  storageBucket: "antrenor-defter.firebasestorage.app",
+  messagingSenderId: "1067792296216",
+  appId: "1:1067792296216:web:570049f3d1dbb82918166d"
+};
+/* ================================================== */
+
+const FB="https://www.gstatic.com/firebasejs/10.12.2/";
+const TOPICS=["Antrenörün rolü + temel terminoloji","Anatomik pozisyonlar ve hareket düzlemleri","Kas, tendon, ligament, eklem","Omuz anatomisi","Omurga anatomisi","Kalça anatomisi","Diz ve ayak bileği","Göğüs kasları ve fonksiyonları","Sırt kasları","Omuz-kol kasları","Quadriceps, hamstring, glute","Core anatomisi","Temel biyomekanik","Tork, moment ve kaldıraç","ROM ve eklem pozisyonu","Kuvvet vektörleri","Squat analizi","Hinge/deadlift analizi","Bench press analizi","Row/pull-up analizi","Overhead press analizi","Lunge/split squat","Egzersiz tekniği ve cueing","Kardiyovasküler sistem","Enerji sistemleri","Kas kasılması","Sinir sistemi","Yorgunluk ve toparlanma","Adaptasyon ve supercompensation","1. ay genel sınav + vaka",
+"Antrenman prensipleri","Progressive overload","Volume","Intensity","Frequency","RPE","RIR","Failure","Set/tekrar sistemleri","Dinlenme süreleri","Hipertrofi mekanizmaları","Mechanical tension","Metabolic stress + muscle damage","Egzersiz seçimi","Compound vs isolation","Full body program","Upper/Lower","Push/Pull/Legs","Split seçimi","Başlangıç seviyesi programlama","Orta seviye programlama","İleri seviye programlama","Haftalık hacim dağılımı","Kas grubu başına programlama","Progressive overload uygulaması","Deload","Periodization","Kuvvet programlama","Hipertrofi programlama","2. ay sınavı + sıfırdan program yazma",
+"Enerji dengesi","TDEE","Kalori açığı/fazlası","Protein","Karbonhidrat","Yağ","Lif ve mikronutrientler","Hidrasyon","Pre-workout beslenme","Post-workout beslenme","Kilo verme programlaması","Kilo alma programlaması","Kardiyo programlama","HIIT vs LISS","Kreatin","Protein supplementleri","Kafein","Diğer kanıtlı supplementler","Kanıtı zayıf supplementler","Supplement güvenliği + doping","İlk danışan değerlendirmesi","Hedef belirleme","Postür/hareket gözlemi","Egzersiz öğretme","Cueing ve teknik düzeltme","Danışan iletişimi","İlerleme takibi","Özel durumlar ve profesyonel sınırlar","Komple danışan vakası","Final sınavı + gerçek antrenörlük simülasyonu"];
+const MONTHS=[{n:1,name:"Temel bilim",c:"--m1"},{n:2,name:"Antrenman bilimi + programlama",c:"--m2"},{n:3,name:"Beslenme + danışan + profesyonel uygulama",c:"--m3"}];
+const MILESTONES=new Set([30,60,90]);
+const STATUS={todo:{t:"Başlanmadı",cls:"st-todo"},doing:{t:"Çalışılıyor",cls:"st-doing"},done:{t:"Tamamlandı",cls:"st-done"},review:{t:"Tekrar gerek",cls:"st-review"}};
+const TYPES=["Öğrenme","Bilimsel araştırma","Uygulama","Not / özet","Tekrar","Sınav / quiz"];
+const REVIEWS=[{k:"r1",d:1,t:"1. gün tekrarı"},{k:"r7",d:7,t:"1. hafta tekrarı"},{k:"r30",d:30,t:"1. ay tekrarı"}];
+const LS="antrenor-defteri-v1";
+
+let S={settings:{startDate:""},days:{}};
+let fs=null, fb=null, uid=null, ui={view:"plan",month:0,status:"all",q:"",open:null};
+
+const pad=n=>String(n).padStart(2,"0");
+const blank=()=>({status:"todo",conf:0,notes:"",takeaways:"",sources:"",questions:"",sessions:[],reviews:{},doneDate:""});
+const day=n=>S.days[n]||(S.days[n]=blank());
+const todayISO=()=>{const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
+const addDays=(iso,k)=>{const d=new Date(iso+"T12:00:00");d.setDate(d.getDate()+k);return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
+const diffDays=(a,b)=>Math.round((new Date(b+"T12:00:00")-new Date(a+"T12:00:00"))/864e5);
+const fmt=iso=>iso?new Date(iso+"T12:00:00").toLocaleDateString("tr-TR",{day:"numeric",month:"short"}):"";
+const fmtLong=iso=>new Date(iso+"T12:00:00").toLocaleDateString("tr-TR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+const planned=n=>S.settings.startDate?addDays(S.settings.startDate,n-1):"";
+const monthOf=n=>Math.ceil(n/30);
+const mins=n=>day(n).sessions.reduce((a,s)=>a+(+s.min||0),0);
+const hm=m=>m>=60?Math.floor(m/60)+" sa "+(m%60?m%60+" dk":""):m+" dk";
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const dueReviews=n=>{const d=day(n);if(!d.doneDate)return[];const t=todayISO();return REVIEWS.filter(r=>!d.reviews[r.k]&&addDays(d.doneDate,r.d)<=t)};
+const currentDay=()=>{if(!S.settings.startDate)return null;const k=diffDays(S.settings.startDate,todayISO())+1;return k>=1&&k<=90?k:null};
+
+/* ---------- kayıt ---------- */
+function cacheLocal(){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}}
+function loadLocal(){try{const r=JSON.parse(localStorage.getItem(LS)||"null");if(r&&r.days)S=r}catch(e){}}
+const timers={}, dirty=new Set();
+function setSave(t){document.getElementById("saveState").textContent=t}
+function persist(key){ // key: gün numarası veya "settings"
+  cacheLocal();
+  if(!fs||!uid){setSave(fs?"Bu cihazda kaydedildi · buluta kaydetmek için giriş yap":"Bu cihazda kaydedildi");return}
+  dirty.add(key);setSave("Kaydediliyor…");
+  clearTimeout(timers[key]);
+  timers[key]=setTimeout(()=>flush(key),700);
+}
+const writing={};
+const dayRef=n=>fb.doc(fs,"users",uid,"days","d"+pad(n));
+const setRef=()=>fb.doc(fs,"users",uid,"meta","settings");
+async function flush(key){
+  if(!fs||!uid)return;
+  if(writing[key]){timers[key]=setTimeout(()=>flush(key),400);return}
+  writing[key]=true;
+  try{
+    if(key==="settings") await fb.setDoc(setRef(),{...S.settings});
+    else await fb.setDoc(dayRef(key),{n:+key,...day(key)});
+    dirty.delete(key);
+    if(!dirty.size)setSave("Buluta kaydedildi "+new Date().toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"}));
+  }catch(e){
+    console.error(e);
+    setSave(e&&e.code==="permission-denied"?"Kaydedilemedi: Firestore kurallarını kontrol et":"Kaydedilemedi, bu cihazda tutuluyor");
+  }finally{writing[key]=false}
+}
+
+let unsubs=[];
+function renderAuth(user){
+  const el=document.getElementById("auth");
+  if(!fs){el.innerHTML="";return}
+  if(user){
+    el.innerHTML=`<span>${esc(user.email||user.displayName||"Giriş yapıldı")}</span><button class="btn ghost" id="outBtn">Çıkış</button>`;
+    document.getElementById("outBtn").onclick=()=>fb.signOut(fb.auth);
+  }else{
+    el.innerHTML=`<button class="btn" id="inBtn">Google ile giriş yap</button>`;
+    document.getElementById("inBtn").onclick=async()=>{
+      const p=new fb.GoogleAuthProvider();
+      try{await fb.signInWithPopup(fb.auth,p)}
+      catch(e){
+        if(e&&(e.code==="auth/popup-blocked"||e.code==="auth/operation-not-supported-in-environment"))fb.signInWithRedirect(fb.auth,p);
+        else if(e&&e.code==="auth/unauthorized-domain")showNotice("<b>Bu alan adı yetkili değil.</b> Firebase Console → Authentication → Settings → Authorized domains bölümüne sitenin adresini ekle (ör. kullaniciadin.github.io).");
+        else if(e&&e.code!=="auth/popup-closed-by-user")setSave("Giriş yapılamadı: "+(e.code||e.message));
+      }
+    };
+  }
+}
+function showNotice(html){const n=document.getElementById("notice");n.innerHTML=html;n.hidden=!html}
+
+function startSync(){
+  unsubs.forEach(u=>u());unsubs=[];
+  let first=true;
+  unsubs.push(fb.onSnapshot(setRef(),s=>{
+    if(dirty.has("settings"))return;
+    if(s.exists()){S.settings={...S.settings,...s.data()};cacheLocal();renderAll(true)}
+  },e=>console.error(e)));
+  unsubs.push(fb.onSnapshot(fb.collection(fs,"users",uid,"days"),snap=>{
+    if(first){
+      first=false;
+      // Bulut boşsa, bu cihazda daha önce girilmiş notları buluta taşı
+      if(snap.empty){
+        const local=Object.keys(S.days).filter(k=>JSON.stringify(S.days[k])!==JSON.stringify(blank()));
+        local.forEach(k=>persist(+k));
+        if(S.settings.startDate)persist("settings");
+        if(local.length)setSave(local.length+" konu buluta aktarılıyor…");
+      }
+    }
+    let changed=false;
+    snap.docs.forEach(d=>{const v=d.data();if(!v)return;const n=v.n;if(!n||dirty.has(n))return;
+      const {n:_,...rest}=v;S.days[n]={...blank(),...rest};changed=true});
+    if(changed){cacheLocal();renderAll(true)}
+  },e=>{console.error(e);setSave(e&&e.code==="permission-denied"?"Okuma izni yok: Firestore kurallarını kontrol et":"Bağlantı sorunu, bu cihazda tutuluyor")}));
+}
+
+async function connect(){
+  if(!firebaseConfig.apiKey||firebaseConfig.apiKey.startsWith("BURAYA")){
+    showNotice("<b>Firebase henüz ayarlanmadı.</b> Notların şimdilik sadece bu tarayıcıda saklanıyor. index.html içindeki <code>firebaseConfig</code> bölümünü kendi proje bilgilerinle doldurduğunda buluta kaydedilecek.");
+    setSave("Bu cihazda kaydediliyor");return;
+  }
+  try{
+    const [app,auth,store]=await Promise.all([import(FB+"firebase-app.js"),import(FB+"firebase-auth.js"),import(FB+"firebase-firestore.js")]);
+    const fApp=app.initializeApp(firebaseConfig);
+    fs=store.initializeFirestore(fApp,{localCache:store.persistentLocalCache({tabManager:store.persistentMultipleTabManager()})});
+    fb={...auth,...store,auth:auth.getAuth(fApp)};
+    try{await auth.getRedirectResult(fb.auth)}catch(e){}
+    auth.onAuthStateChanged(fb.auth,user=>{
+      renderAuth(user);
+      if(user){uid=user.uid;showNotice("");setSave("Bağlandı");startSync()}
+      else{uid=null;unsubs.forEach(u=>u());unsubs=[];setSave("Giriş yapmadın · notlar sadece bu cihazda")}
+    });
+  }catch(e){
+    console.error(e);fs=null;
+    showNotice("<b>Firebase'e bağlanılamadı.</b> firebaseConfig bilgilerini kontrol et. Bu arada notların bu tarayıcıda saklanıyor.");
+  }
+}
+
+/* ---------- özet ---------- */
+function renderStats(){
+  let done=0,doing=0,review=0,total=0,confSum=0,confN=0,due=0;
+  for(let n=1;n<=90;n++){const d=day(n);if(d.status==="done")done++;if(d.status==="doing")doing++;if(d.status==="review")review++;total+=mins(n);if(d.conf){confSum+=d.conf;confN++}due+=dueReviews(n).length}
+  const w=x=>(x/90*100)+"%";
+  document.getElementById("stats").innerHTML=`
+   <div class="stat"><span>Tamamlanan konu</span><b class="mono">${done}<small style="font-size:16px;color:var(--muted)"> / 90</small></b>
+     <div class="bar"><i style="width:${w(done)};background:var(--ok)"></i><i style="width:${w(review)};background:var(--info)"></i><i style="width:${w(doing)};background:var(--warn)"></i></div></div>
+   <div class="stat"><span>Toplam çalışma</span><b class="mono">${hm(total)}</b></div>
+   <div class="stat"><span>Ort. güven (1–5)</span><b class="mono">${confN?(confSum/confN).toFixed(1):"–"}</b></div>
+   <div class="stat"><span>Bekleyen tekrar</span><b class="mono" style="color:${due?"var(--info)":"inherit"}">${due}</b></div>`;
+}
+function renderToday(){
+  const el=document.getElementById("today"),k=currentDay();
+  const dues=[];for(let n=1;n<=90;n++)dueReviews(n).forEach(r=>dues.push(n));
+  if(!S.settings.startDate){el.innerHTML=`<span class="lbl">Başla</span><span class="t">Başlangıç tarihini seç; her güne planlanan tarih ve “bugünün konusu” otomatik gelsin.</span>`;return}
+  if(!k){const before=diffDays(todayISO(),S.settings.startDate);el.innerHTML=`<span class="lbl">Program</span><span class="t">${before>0?`1. güne ${before} gün var (${fmt(S.settings.startDate)}).`:"90 günlük plan bitti. Tekrar filtresiyle eksiklere dönebilirsin."}</span>`;return}
+  el.innerHTML=`<span class="lbl">Bugün · ${k}. gün</span><span class="t">${esc(TOPICS[k-1])}</span>${dues.length?`<span class="due">${dues.length} tekrar bekliyor</span>`:""}<button id="openToday">Bugünün kartını aç</button>`;
+  document.getElementById("openToday").onclick=()=>openSheet(k);
+}
+
+/* ---------- plan listesi ---------- */
+function renderChips(){
+  const mc=document.getElementById("monthChips");
+  mc.innerHTML=[{n:0,name:"Tümü"},...MONTHS].map(m=>`<button class="chip" aria-pressed="${ui.month===m.n}" data-m="${m.n}">${m.n?`<span class="dot" style="background:var(${m.c})"></span>${m.n}. ay`:"Tüm aylar"}</button>`).join("");
+  mc.querySelectorAll("button").forEach(b=>b.onclick=()=>{ui.month=+b.dataset.m;renderChips();renderPlan()});
+  const sc=document.getElementById("statusChips");
+  const opts=[["all","Hepsi"],["todo","Başlanmadı"],["doing","Çalışılıyor"],["done","Tamamlandı"],["review","Tekrar gerek"],["due","Tekrar zamanı"],["notes","Notu olanlar"]];
+  sc.innerHTML=opts.map(([k,t])=>`<button class="chip" aria-pressed="${ui.status===k}" data-s="${k}">${t}</button>`).join("");
+  sc.querySelectorAll("button").forEach(b=>b.onclick=()=>{ui.status=b.dataset.s;renderChips();renderPlan()});
+}
+function match(n){
+  const d=day(n);
+  if(ui.month&&monthOf(n)!==ui.month)return false;
+  if(ui.status==="due"){if(!dueReviews(n).length)return false}
+  else if(ui.status==="notes"){if(!(d.notes||d.takeaways||d.questions||d.sources))return false}
+  else if(ui.status!=="all"&&d.status!==ui.status)return false;
+  if(ui.q){const hay=(n+" "+TOPICS[n-1]+" "+d.notes+" "+d.takeaways+" "+d.questions+" "+d.sources+" "+d.sessions.map(s=>s.note).join(" ")).toLocaleLowerCase("tr");if(!hay.includes(ui.q))return false}
+  return true;
+}
+function confHTML(c){return `<span class="conf" title="Güven ${c||0}/5">${[1,2,3,4,5].map(i=>`<i class="${i<=c?"on":""}"></i>`).join("")}</span>`}
+function renderPlan(){
+  const k=currentDay(),out=[];
+  MONTHS.forEach(m=>{
+    if(ui.month&&ui.month!==m.n)return;
+    const rows=[];let done=0;
+    for(let n=(m.n-1)*30+1;n<=m.n*30;n++){
+      if(day(n).status==="done")done++;
+      if(!match(n))continue;
+      const d=day(n),st=STATUS[d.status],m2=mins(n),last=d.sessions.length?d.sessions.map(s=>s.date).sort().pop():"",due=dueReviews(n);
+      const meta=[];
+      if(planned(n))meta.push("Plan: "+fmt(planned(n)));
+      if(last)meta.push("Son çalışma: "+fmt(last));
+      if(m2)meta.push(hm(m2));
+      if(d.notes||d.takeaways)meta.push("Not var");
+      if(d.questions)meta.push("Açık soru var");
+      if(due.length)meta.push(`<span class="due">${due[0].t} zamanı</span>`);
+      rows.push(`<button class="row${n===k?" is-today":""}${MILESTONES.has(n)?" milestone":""}" data-n="${n}">
+        <span class="n mono">${n}</span>
+        <span style="min-width:0"><span class="title">${esc(TOPICS[n-1])}</span><span class="meta">${meta.join("<span aria-hidden='true'>·</span>")}</span></span>
+        <span style="display:flex;flex-direction:column;align-items:end;gap:5px"><span class="badge ${st.cls}">${st.t}</span>${d.conf?confHTML(d.conf):""}</span>
+      </button>`);
+    }
+    out.push(`<section class="month"><div class="mhead"><span class="plate" style="color:var(${m.c})"></span><h2>${m.n}. ay · ${m.name}</h2><small class="mono">${done}/30 tamam</small></div>
+      <div class="list">${rows.join("")||`<div class="empty">Bu filtreye uyan konu yok.</div>`}</div></section>`);
+  });
+  const el=document.getElementById("months");el.innerHTML=out.join("");
+  el.querySelectorAll(".row").forEach(r=>r.onclick=()=>openSheet(+r.dataset.n));
+}
+
+/* ---------- günlük ---------- */
+function renderLog(){
+  const all=[];
+  for(let n=1;n<=90;n++)day(n).sessions.forEach(s=>all.push({...s,n}));
+  for(let n=1;n<=90;n++){const d=day(n);REVIEWS.forEach(r=>{if(d.reviews[r.k])all.push({date:d.reviews[r.k],n,type:r.t,min:0,note:"",id:"rv"+n+r.k})})}
+  const el=document.getElementById("log");
+  if(!all.length){el.innerHTML=`<div class="list"><div class="empty">Henüz çalışma kaydı yok. Bir konunun kartını aç, “Çalışma ekle” ile tarih, süre ve ne yaptığını yaz; burada gün gün listelenir.</div></div>`;return}
+  all.sort((a,b)=>b.date.localeCompare(a.date)||b.n-a.n);
+  const groups={};all.forEach(e=>(groups[e.date]=groups[e.date]||[]).push(e));
+  el.innerHTML=Object.keys(groups).map(dt=>{const g=groups[dt],tot=g.reduce((a,e)=>a+(+e.min||0),0);
+    return `<div class="logday"><h3>${fmtLong(dt)}${tot?` · <span class="mono">${hm(tot)}</span>`:""}</h3><div class="list">${g.map(e=>`
+      <button class="entry" data-n="${e.n}"><span class="tag">${esc(e.type)}</span>
+      <span style="min-width:0"><b>${e.n}. gün</b> · ${esc(TOPICS[e.n-1])}${e.note?`<p>${esc(e.note)}</p>`:""}</span>
+      <span class="mono" style="font-size:13px;color:var(--muted)">${e.min?e.min+" dk":""}</span></button>`).join("")}</div></div>`}).join("");
+  el.querySelectorAll(".entry").forEach(r=>r.onclick=()=>openSheet(+r.dataset.n));
+}
+
+/* ---------- çalışma kartı ---------- */
+function openSheet(n){ui.open=n;renderSheet();document.getElementById("scrim").hidden=false;const s=document.getElementById("sheet");s.hidden=false;s.scrollTop=0;document.body.style.overflow="hidden";setTimeout(()=>document.getElementById("closeSheet")?.focus(),0)}
+function closeSheet(){ui.open=null;document.getElementById("scrim").hidden=true;document.getElementById("sheet").hidden=true;document.body.style.overflow="";renderAll()}
+function renderSheet(){
+  const n=ui.open;if(!n)return;
+  const d=day(n),m=MONTHS[monthOf(n)-1],sh=document.getElementById("sheet");
+  const sess=[...d.sessions].sort((a,b)=>b.date.localeCompare(a.date));
+  sh.innerHTML=`
+  <div class="hd"><span class="num mono" style="background:var(${m.c})">${n}</span>
+    <div style="min-width:0"><h2 id="sTitle">${esc(TOPICS[n-1])}</h2>
+    <div class="sub">${m.n}. ay · ${m.name}${planned(n)?" · Plan: "+fmtLong(planned(n)):""}</div></div>
+    <button class="x" id="closeSheet" aria-label="Kapat">✕</button></div>
+  <div class="nav"><button id="prevD" ${n===1?"disabled":""}>← ${n>1?n-1+". gün":""}</button><button id="nextD" ${n===90?"disabled":""}>${n<90?n+1+". gün":""} →</button></div>
+
+  <div class="card"><h3>Durum</h3>
+    <div class="seg" id="seg">${Object.entries(STATUS).map(([k,v])=>`<button class="${v.cls}" aria-pressed="${d.status===k}" data-k="${k}">${v.t}</button>`).join("")}</div>
+    <label class="f">Konuya ne kadar hakimsin?</label>
+    <div class="scale" id="scale">${[1,2,3,4,5].map(i=>`<button aria-pressed="${d.conf===i}" data-c="${i}">${i}</button>`).join("")}<small>1 = hiç, 5 = birine anlatabilirim</small></div>
+  </div>
+
+  <div class="card"><h3>Çalışma kayıtları <span class="mono" style="color:var(--muted);font-weight:500;font-size:13px">${mins(n)?"· "+hm(mins(n)):""}</span></h3>
+    <form class="form" id="sessForm">
+      <input class="in wide" type="date" id="sDate" value="${todayISO()}" aria-label="Tarih" required>
+      <input class="in" type="number" id="sMin" min="1" max="600" placeholder="dk" aria-label="Süre (dakika)" required>
+      <select class="in wide" id="sType" aria-label="Çalışma türü">${TYPES.map(t=>`<option>${t}</option>`).join("")}</select>
+      <input class="in full" id="sNote" placeholder="Ne yaptın? (ör. Schoenfeld 2010 derlemesini okudum)" aria-label="Kısa not">
+      <button class="btn full" type="submit">Çalışma ekle</button>
+    </form>
+    ${sess.length?`<ul class="sess">${sess.map(s=>`<li><span class="mono" style="font-size:13px">${fmt(s.date)}</span><span style="min-width:0"><span class="tag">${esc(s.type)}</span> <span class="mono" style="font-size:13px">${s.min} dk</span>${s.note?`<p>${esc(s.note)}</p>`:""}</span><button class="del" data-id="${s.id}" aria-label="Kaydı sil">Sil</button></li>`).join("")}</ul>`:`<p class="hint" style="margin-top:10px">Henüz kayıt yok. Her oturumu ekledikçe bu konuya ne zaman, ne kadar çalıştığın burada birikir.</p>`}
+  </div>
+
+  <div class="card"><h3>Notlar</h3>
+    <label class="f" for="fNotes">Ders notları</label><textarea id="fNotes" data-f="notes" rows="6" placeholder="Konunun özeti, tanımlar, şemalar…">${esc(d.notes)}</textarea>
+    <label class="f" for="fTake">Akılda kalacak 3 nokta</label><textarea id="fTake" data-f="takeaways" rows="3" placeholder="1) … 2) … 3) …">${esc(d.takeaways)}</textarea>
+    <label class="f" for="fSrc">Kaynaklar / makaleler</label><textarea id="fSrc" data-f="sources" rows="2" placeholder="Kitap bölümü, makale, video linki…">${esc(d.sources)}</textarea>
+    <label class="f" for="fQ">Açık sorular</label><textarea id="fQ" data-f="questions" rows="2" placeholder="Henüz netleşmeyen noktalar">${esc(d.questions)}</textarea>
+  </div>
+
+  <div class="card"><h3>Aralıklı tekrar</h3>
+    ${d.doneDate?`<div class="rev">${REVIEWS.map(r=>{const when=addDays(d.doneDate,r.d),isDue=!d.reviews[r.k]&&when<=todayISO();
+      return `<label><input type="checkbox" data-r="${r.k}" ${d.reviews[r.k]?"checked":""}> ${r.t}<span class="when ${isDue?"due":""}">${d.reviews[r.k]?"Yapıldı "+fmt(d.reviews[r.k]):(isDue?"Zamanı geldi · ":"")+fmt(when)}</span></label>`}).join("")}</div>
+      <p class="hint" style="margin-top:8px">Tamamlanma: ${fmt(d.doneDate)}</p>`
+    :`<p class="hint">Konuyu “Tamamlandı” yaptığında 1 gün, 1 hafta ve 1 ay sonrası için tekrar tarihleri burada açılır.</p>`}
+  </div>`;
+
+  sh.querySelector("#closeSheet").onclick=closeSheet;
+  sh.querySelector("#prevD").onclick=()=>{if(n>1){ui.open=n-1;renderSheet();sh.scrollTop=0}};
+  sh.querySelector("#nextD").onclick=()=>{if(n<90){ui.open=n+1;renderSheet();sh.scrollTop=0}};
+  sh.querySelectorAll("#seg button").forEach(b=>b.onclick=()=>{
+    d.status=b.dataset.k;
+    if(d.status==="done"&&!d.doneDate)d.doneDate=todayISO();
+    if(d.status==="todo"){d.doneDate="";d.reviews={}}
+    persist(n);renderSheet();
+  });
+  sh.querySelectorAll("#scale button").forEach(b=>b.onclick=()=>{const c=+b.dataset.c;d.conf=d.conf===c?0:c;persist(n);renderSheet()});
+  sh.querySelector("#sessForm").onsubmit=e=>{
+    e.preventDefault();
+    const min=+sh.querySelector("#sMin").value,date=sh.querySelector("#sDate").value;
+    if(!date||!min)return;
+    d.sessions.push({id:Date.now().toString(36),date,min,type:sh.querySelector("#sType").value,note:sh.querySelector("#sNote").value.trim()});
+    if(d.status==="todo")d.status="doing";
+    persist(n);renderSheet();
+  };
+  sh.querySelectorAll(".del").forEach(b=>{let armed=false;b.onclick=()=>{
+    if(!armed){armed=true;b.textContent="Emin misin?";setTimeout(()=>{armed=false;b.textContent="Sil"},2500);return}
+    d.sessions=d.sessions.filter(s=>s.id!==b.dataset.id);persist(n);renderSheet()}});
+  sh.querySelectorAll("textarea[data-f]").forEach(t=>t.oninput=()=>{d[t.dataset.f]=t.value;persist(n)});
+  sh.querySelectorAll("input[data-r]").forEach(c=>c.onchange=()=>{if(c.checked)d.reviews[c.dataset.r]=todayISO();else delete d.reviews[c.dataset.r];persist(n);renderSheet()});
+}
+
+/* ---------- genel ---------- */
+function renderAll(fromRemote){
+  renderStats();renderToday();renderChips();
+  if(ui.view==="plan")renderPlan();else renderLog();
+  const sd=document.getElementById("startDate");if(document.activeElement!==sd)sd.value=S.settings.startDate||"";
+  // açık kartta yazarken uzaktan gelen güncelleme ile metni bozma
+  if(ui.open&&fromRemote&&!document.getElementById("sheet").contains(document.activeElement))renderSheet();
+}
+document.getElementById("startDate").onchange=e=>{S.settings.startDate=e.target.value;persist("settings");renderAll()};
+document.getElementById("q").oninput=e=>{ui.q=e.target.value.trim().toLocaleLowerCase("tr");renderPlan()};
+document.querySelectorAll(".views button").forEach(b=>b.onclick=()=>{
+  ui.view=b.dataset.view;
+  document.querySelectorAll(".views button").forEach(x=>x.setAttribute("aria-selected",x===b));
+  document.getElementById("planView").hidden=ui.view!=="plan";document.getElementById("logView").hidden=ui.view!=="log";
+  try{localStorage.setItem(LS+"-view",ui.view)}catch(e){}
+  renderAll();
+});
+document.getElementById("scrim").onclick=closeSheet;
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&ui.open)closeSheet()});
+
+/* yedek */
+const io=document.getElementById("ioBox"),ioT=document.getElementById("ioText"),ioM=document.getElementById("ioMsg");
+document.getElementById("exportBtn").onclick=async()=>{
+  const txt=JSON.stringify(S);io.hidden=false;ioT.value=txt;
+  try{await navigator.clipboard.writeText(txt);ioM.textContent="Panoya kopyalandı. Bir nota yapıştırıp saklayabilirsin."}
+  catch(e){ioT.select();ioM.textContent="Metin seçildi, kopyalayıp sakla."}
+};
+document.getElementById("importBtn").onclick=()=>{io.hidden=false;ioT.value="";ioM.textContent="";ioT.focus()};
+document.getElementById("ioClose").onclick=()=>{io.hidden=true};
+document.getElementById("ioApply").onclick=()=>{
+  try{const r=JSON.parse(ioT.value);if(!r.days)throw 0;
+    S={settings:{...S.settings,...(r.settings||{})},days:{}};
+    Object.keys(r.days).forEach(k=>S.days[k]={...blank(),...r.days[k]});
+    persist("settings");for(let n=1;n<=90;n++)if(r.days[n])persist(n);
+    renderAll();ioM.textContent="Geri yüklendi.";
+  }catch(e){ioM.textContent="Bu metin bir yedek gibi görünmüyor. “Tüm veriyi kopyala” ile alınan metni yapıştır."}
+};
+
+loadLocal();
+try{const v=localStorage.getItem(LS+"-view");if(v==="log")document.getElementById("tabLog").click()}catch(e){}
+renderAll();
+connect();
+</script>
+</body>
+</html>
